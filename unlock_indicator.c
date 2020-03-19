@@ -1,11 +1,30 @@
 /*
- * vim:ts=4:sw=4:expandtab
+ * This file is part of i3lock-extended
+ * Copyright (C) 2020 Simeon Simeonov
+
+ * i3lock-extended is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+
+ * i3lock-extended is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/* This file includes software copyrighted by Michael Stapelberg and
+ * distributed under the following license: See LICENSE for more information
  *
  * © 2010 Michael Stapelberg
  *
  * See LICENSE for licensing information
  *
  */
+
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -22,16 +41,35 @@
 #include "randr.h"
 #include "dpi.h"
 
+#ifdef EXTRAS
+#include "extras.h"
+#endif
+
 #define BUTTON_RADIUS 90
 #define BUTTON_SPACE (BUTTON_RADIUS + 5)
 #define BUTTON_CENTER (BUTTON_RADIUS + 5)
 #define BUTTON_DIAMETER (2 * BUTTON_SPACE)
 
-/*******************************************************************************
+/******************************************************************************
  * Variables defined in i3lock.c.
- ******************************************************************************/
+ *****************************************************************************/
 
 extern bool debug_mode;
+
+#ifdef EXTRAS
+/* timekeeping */
+time_t now;
+struct tm *brokentime;
+/* enable the digital clock */
+extern bool digital_clock;
+extern bool led_clock;
+extern bool elapsed_time;
+extern i3lock_digital_clock_t i3lock_digital_clock;
+extern i3lock_elapsed_time_t i3lock_elapsed_time;
+extern i3lock_led_clock_t i3lock_led_clock;
+/* display text */
+extern char *display_text;
+#endif
 
 /* The current position in the input buffer. Useful to determine if any
  * characters of the password have already been entered or not. */
@@ -62,16 +100,16 @@ extern bool show_failed_attempts;
 /* Number of failed unlock attempts. */
 extern int failed_attempts;
 
-/*******************************************************************************
+/******************************************************************************
  * Variables defined in xcb.c.
- ******************************************************************************/
+ *****************************************************************************/
 
 /* The root screen, to determine the DPI. */
 extern xcb_screen_t *screen;
 
-/*******************************************************************************
+/******************************************************************************
  * Local variables.
- ******************************************************************************/
+ *****************************************************************************/
 
 /* Cache the screen’s visual, necessary for creating a Cairo context. */
 static xcb_visualtype_t *vistype;
@@ -304,7 +342,34 @@ xcb_pixmap_t draw_image(uint32_t *resolution) {
             cairo_stroke(ctx);
         }
     }
-
+#ifdef EXTRAS
+    now = time(NULL);
+    brokentime = localtime(&now);
+    if (led_clock) {
+        i3lock_draw_led_clock(xcb_ctx,
+                              &i3lock_led_clock,
+                              resolution,
+                              brokentime);
+    }
+    if (digital_clock) {
+        i3lock_draw_digital_clock(xcb_ctx,
+                                  &i3lock_digital_clock,
+                                  resolution,
+                                  brokentime);
+    }
+    /* elapsed time or display text */
+    if (elapsed_time) {
+        i3lock_draw_elapsed_time(xcb_ctx,
+                                 &i3lock_elapsed_time,
+                                 resolution,
+                                 &now);
+    } else if (display_text != NULL) {
+        i3lock_draw_string(xcb_ctx,
+                           display_text,
+                           &i3lock_elapsed_time,
+                           resolution);
+    }
+#endif
     if (xr_screens > 0) {
         /* Composite the unlock indicator in the middle of each screen. */
         for (int screen = 0; screen < xr_screens; screen++) {

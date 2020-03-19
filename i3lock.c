@@ -1,11 +1,30 @@
 /*
- * vim:ts=4:sw=4:expandtab
+ * This file is part of i3lock-extended
+ * Copyright (C) 2020 Simeon Simeonov
+
+ * i3lock-extended is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+
+ * i3lock-extended is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/* This file includes software copyrighted by Michael Stapelberg and
+ * distributed under the following license: See LICENSE for more information
  *
  * © 2010 Michael Stapelberg
  *
  * See LICENSE for licensing information
  *
  */
+
 #include <config.h>
 
 #include <stdio.h>
@@ -48,6 +67,10 @@
 #include "randr.h"
 #include "dpi.h"
 
+#ifdef EXTRAS
+#include "extras.h"
+#endif
+
 #define TSTAMP_N_SECS(n) (n * 1.0)
 #define TSTAMP_N_MINS(n) (60 * TSTAMP_N_SECS(n))
 #define START_TIMER(timer_obj, timeout, callback) \
@@ -57,6 +80,31 @@
 
 typedef void (*ev_callback_t)(EV_P_ ev_timer *w, int revents);
 static void input_done(void);
+
+#ifdef EXTRAS
+bool digital_clock = false;
+bool led_clock = false;
+bool elapsed_time = false;
+int refresh_rate = 2; /* 2 frames per second */
+i3lock_digital_clock_t i3lock_digital_clock = {28,
+                                               "000000",
+                                               "%H:%M:%S",
+                                               I3LOCK_ALIGN_LEFT,
+                                               I3LOCK_ALIGN_TOP};
+
+i3lock_elapsed_time_t i3lock_elapsed_time = {28,
+                                             "000000",
+                                             0,
+                                             I3LOCK_ALIGN_RIGHT,
+                                             I3LOCK_ALIGN_BOTTOM};
+
+i3lock_led_clock_t i3lock_led_clock = {"ffff00",
+                                       "7f7f7f",
+                                       "000000",
+                                       I3LOCK_ALIGN_CENTER,
+                                       I3LOCK_ALIGN_BOTTOM};
+char *display_text = NULL;
+#endif
 
 char color[7] = "ffffff";
 uint32_t last_resolution[2];
@@ -305,7 +353,10 @@ static void input_done(void) {
         return;
     }
 #endif
-
+#ifdef EXTRAS
+    /* reset the time elapsed counter */
+    i3lock_elapsed_time.start_time = time(NULL);
+#endif
     if (debug_mode)
         fprintf(stderr, "Authentication failure\n");
 
@@ -1005,6 +1056,15 @@ static void raise_loop(xcb_window_t window) {
     }
 }
 
+#ifdef EXTRAS
+/* called periodically by the ticking system */
+static void refresh_tick_cb (EV_P_ ev_timer *w, int revents) {
+
+    redraw_screen();
+
+}
+#endif
+
 int main(int argc, char *argv[]) {
     struct passwd *pw;
     char *username;
@@ -1023,6 +1083,26 @@ int main(int argc, char *argv[]) {
         {"beep", no_argument, NULL, 'b'},
         {"dpms", no_argument, NULL, 'd'},
         {"color", required_argument, NULL, 'c'},
+#ifdef EXTRAS
+        {"digital-clock", no_argument, NULL, 'D'},
+        {"digital-clock-color", required_argument, NULL, 'G'},
+        {"digital-clock-template", required_argument, NULL, 'T'},
+        {"digital-clock-halign", required_argument, NULL, 'x'},
+        {"digital-clock-valign", required_argument, NULL, 'y'},
+        {"display-text", no_argument, NULL, 'J'},
+        {"elapsed-time", no_argument, NULL, 'E'},
+        {"elapsed-time-color", required_argument, NULL, 'R'},
+        {"elapsed-time-halign", required_argument, NULL, 'W'},
+        {"elapsed-time-valign", required_argument, NULL, 'Z'},
+        {"led-clock", no_argument, NULL, 'L'},
+        {"led-clock-halign", required_argument, NULL, 'X'},
+        {"led-clock-valign", required_argument, NULL, 'Y'},
+        {"led-border-color", required_argument, NULL, 'B'},
+        {"led-off-color", required_argument, NULL, 'F'},
+        {"led-on-color", required_argument, NULL, 'O'},
+        {"refresh-rate", required_argument, NULL, 'r'},
+        {"text-size", required_argument, NULL, 'S'},
+#endif
         {"pointer", required_argument, NULL, 'p'},
         {"debug", no_argument, NULL, 0},
         {"help", no_argument, NULL, 'h'},
@@ -1040,11 +1120,15 @@ int main(int argc, char *argv[]) {
     if ((username = pw->pw_name) == NULL)
         errx(EXIT_FAILURE, "pw->pw_name is NULL.");
 
+#ifdef EXTRAS
+    char *optstring = "hvnbDdELc:B:G:F:J:O:R:r:S:T:W:X:x:Y:y:Z:p:ui:teI:f";
+#else
     char *optstring = "hvnbdc:p:ui:teI:f";
+#endif
     while ((o = getopt_long(argc, argv, optstring, longopts, &longoptind)) != -1) {
         switch (o) {
             case 'v':
-                errx(EXIT_SUCCESS, "version " I3LOCK_VERSION " © 2010 Michael Stapelberg");
+                errx(EXIT_SUCCESS, "version " I3LOCK_VERSION " © 2010 Michael Stapelberg, 2017-2020 Simeon Simeonov");
             case 'n':
                 dont_fork = true;
                 break;
@@ -1052,10 +1136,10 @@ int main(int argc, char *argv[]) {
                 beep = true;
                 break;
             case 'd':
-                fprintf(stderr, "DPMS support has been removed from i3lock. Please see the manpage i3lock(1).\n");
+                fprintf(stderr, "DPMS support has been removed from i3lock. Please see the manpage i3lock-extended(1).\n");
                 break;
             case 'I': {
-                fprintf(stderr, "Inactivity timeout only makes sense with DPMS, which was removed. Please see the manpage i3lock(1).\n");
+                fprintf(stderr, "Inactivity timeout only makes sense with DPMS, which was removed. Please see the manpage i3lock-extended(1).\n");
                 break;
             }
             case 'c': {
@@ -1070,6 +1154,181 @@ int main(int argc, char *argv[]) {
 
                 break;
             }
+#ifdef EXTRAS
+            case 'D':
+                digital_clock = true;
+                break;
+            case 'E':
+                elapsed_time = true;
+                i3lock_elapsed_time.start_time = time(NULL);
+                break;
+            case 'L':
+                led_clock = true;
+                break;
+            case 'B': {
+                char *arg = optarg;
+
+                /* Skip # if present */
+                if (arg[0] == '#')
+                    arg++;
+
+                if (strlen(arg) != 6 || sscanf(arg, "%06[0-9a-fA-F]", i3lock_led_clock.led_border_color) != 1)
+                    errx(EXIT_FAILURE, "led-border-color is invalid, it must be given in 3-byte hexadecimal format: rrggbb\n");
+                DEBUG("led-border-color: %s\n", i3lock_led_clock.led_border_color);
+                break;
+            }
+            case 'G': { /* digital-clock-color */
+                char *arg = optarg;
+
+                /* Skip # if present */
+                if (arg[0] == '#')
+                    arg++;
+
+                if (strlen(arg) != 6 || sscanf(arg, "%06[0-9a-fA-F]", i3lock_digital_clock.color) != 1)
+                    errx(EXIT_FAILURE, "digital-clock-color is invalid, it must be given in 3-byte hexadecimal format: rrggbb\n");
+                DEBUG("digital-clock-color: %s\n", i3lock_digital_clock.color);
+                break;
+            }
+            case 'F': { /* led-off-color */
+                char *arg = optarg;
+
+                /* Skip # if present */
+                if (arg[0] == '#')
+                    arg++;
+
+                if (strlen(arg) != 6 || sscanf(arg, "%06[0-9a-fA-F]", i3lock_led_clock.led_off_color) != 1)
+                    errx(EXIT_FAILURE, "led-off-color is invalid, it must be given in 3-byte hexadecimal format: rrggbb\n");
+                DEBUG("led-off-color: %s\n", i3lock_led_clock.led_off_color);
+                break;
+            }
+            case 'J': {
+                display_text = strdup(optarg);
+                if (display_text == NULL) {
+                    errx(EXIT_FAILURE,
+                         "Unable to initialize display_text\n");
+                }
+                DEBUG("display_text: %s\n", display_text);
+                break;
+            }
+            case 'O': { /* led-on-color */
+                char *arg = optarg;
+
+                /* Skip # if present */
+                if (arg[0] == '#')
+                    arg++;
+
+                if (strlen(arg) != 6 || sscanf(arg, "%06[0-9a-fA-F]", i3lock_led_clock.led_on_color) != 1)
+                    errx(EXIT_FAILURE, "led-on-color is invalid, it must be given in 3-byte hexadecimal format: rrggbb\n");
+                DEBUG("led-on-color: %s\n", i3lock_led_clock.led_on_color);
+                break;
+            }
+            case 'R': { /* elapsed-time-color */
+                char *arg = optarg;
+
+                /* Skip # if present */
+                if (arg[0] == '#')
+                    arg++;
+
+                if (strlen(arg) != 6 || sscanf(arg, "%06[0-9a-fA-F]", i3lock_elapsed_time.color) != 1)
+                    errx(EXIT_FAILURE, "elapsed-time-color is invalid, it must be given in 3-byte hexadecimal format: rrggbb\n");
+                DEBUG("elapsed-time-color: %s\n", i3lock_elapsed_time.color);
+                break;
+            }
+            case 'r': /* refresh-rate */
+                if (atoi(optarg)) /* not nice with 0 */
+                    refresh_rate = atoi(optarg);
+                DEBUG("refresh-rate: %d\n",
+                      refresh_rate);
+                break;
+            case 'S': /* text-size */
+                i3lock_elapsed_time.text_size = i3lock_digital_clock.text_size = atoi(optarg);
+                DEBUG("text-size: %d\n",
+                      i3lock_digital_clock.text_size);
+                break;
+            case 'T': /* digital-clock-template */
+                i3lock_digital_clock.template = strdup(optarg);
+                DEBUG("digital-clock-template: %s\n",
+                      i3lock_digital_clock.template);
+                break;
+            case 'W': /* elapsed-time-halign */
+                /* the default is right */
+                if (strcasecmp(optarg, "left") == 0) {
+                    i3lock_elapsed_time.horizontal_alignment = I3LOCK_ALIGN_LEFT;
+                    DEBUG("elapsed-time-halign: left\n");
+                } else if (strcasecmp(optarg, "center") == 0) {
+                    i3lock_elapsed_time.horizontal_alignment = I3LOCK_ALIGN_CENTER;
+                    DEBUG("elapsed-time-halign: center\n");
+                } else {
+                    /* value already set */
+                    DEBUG("elapsed-time-halign: right\n");
+                }
+                break;
+            case 'X': /* led-clock-halign */
+                /* the default is center */
+                if (strcasecmp(optarg, "left") == 0) {
+                    i3lock_led_clock.horizontal_alignment = I3LOCK_ALIGN_LEFT;
+                    DEBUG("led-clock-halign: left\n");
+                } else if (strcasecmp(optarg, "right") == 0) {
+                    i3lock_led_clock.horizontal_alignment = I3LOCK_ALIGN_RIGHT;
+                    DEBUG("led-clock-halign: right\n");
+                } else {
+                    /* value already set */
+                    DEBUG("led-clock-halign: center\n");
+                }
+                break;
+            case 'Y': /* led-clock-valign */
+                /* the default is bottom */
+                if (strcasecmp(optarg, "middle") == 0) {
+                    i3lock_led_clock.vertical_alignment = I3LOCK_ALIGN_MIDDLE;
+                    DEBUG("led-clock-valign: middle\n");
+                } else if (strcasecmp(optarg, "top") == 0) {
+                    i3lock_led_clock.vertical_alignment = I3LOCK_ALIGN_TOP;
+                    DEBUG("led-clock-valign: top\n");
+                } else {
+                    /* value already set */
+                    DEBUG("led-clock-valign: bottom\n");
+                }
+                break;
+            case 'x': /* digital-clock-halign */
+                /* the default is left */
+                if (strcasecmp(optarg, "center") == 0) {
+                    i3lock_digital_clock.horizontal_alignment = I3LOCK_ALIGN_CENTER;
+                    DEBUG("digital-clock-halign: center\n");
+                } else if (strcasecmp(optarg, "right") == 0) {
+                    i3lock_digital_clock.horizontal_alignment = I3LOCK_ALIGN_RIGHT;
+                    DEBUG("digital-clock-halign: right\n");
+                } else {
+                    /* value already set */
+                    DEBUG("digital-clock-halign: left\n");
+                }
+                break;
+            case 'y': /* digital-clock-valign */
+                /* the default is top */
+                if (strcasecmp(optarg, "middle") == 0) {
+                    i3lock_digital_clock.vertical_alignment = I3LOCK_ALIGN_MIDDLE;
+                    DEBUG("digital-clock-valign: middle\n");
+                } else if (strcasecmp(optarg, "bottom") == 0) {
+                    i3lock_digital_clock.vertical_alignment = I3LOCK_ALIGN_BOTTOM;
+                    DEBUG("digital-clock-valign: bottom\n");
+                } else {
+                    /* value already set */
+                    DEBUG("digital-clock-valign: top\n");
+                }
+                break;
+            case 'Z': /* elapsed-time-valign */
+                /* the default is bottom */
+                if (strcasecmp(optarg, "middle") == 0) {
+                    i3lock_elapsed_time.vertical_alignment = I3LOCK_ALIGN_MIDDLE;
+                    DEBUG("elapsed-time-valign: middle\n");
+                } else if (strcasecmp(optarg, "top") == 0) {
+                    i3lock_elapsed_time.vertical_alignment = I3LOCK_ALIGN_TOP;
+                    DEBUG("elapsed-time-valign: top\n");
+                } else {
+                    /* value already set */
+                    DEBUG("elapsed-time-valign: bottom\n");
+                }
+                break;
+#endif
             case 'u':
                 unlock_indicator = false;
                 break;
@@ -1101,8 +1360,21 @@ int main(int argc, char *argv[]) {
                 show_failed_attempts = true;
                 break;
             default:
+#ifdef EXTRAS
+                errx(
+                    EXIT_FAILURE,
+                    "Syntax: i3lock-extended [-v] [-n] [-b] [-D] [-d] [-E] "
+                    "[-L] [-c color] [-B color] [-F color] [-G color] "
+                    "[-J text] [-O color] [-R color] [-r refresh rate] [-u] "
+                    "[-W horizontal-alignment] [-X horizontal-alignment] "
+                    "[-x horizontal-alignment] [-Y vertical-alignment] "
+                    "[-y vertical-alignment] [-Z vertical-alignment] "
+                    "[-p win|default] [-i image.png] [-t] [-e] [-I timeout] "
+                    "[-f]");
+#else
                 errx(EXIT_FAILURE, "Syntax: i3lock [-v] [-n] [-b] [-d] [-c color] [-u] [-p win|default]"
                                    " [-i image.png] [-t] [-e] [-I timeout] [-f]");
+#endif
         }
     }
 
@@ -1291,6 +1563,11 @@ int main(int argc, char *argv[]) {
     ev_prepare_init(xcb_prepare, xcb_prepare_cb);
     ev_prepare_start(main_loop, xcb_prepare);
 
+#ifdef EXTRAS
+    ev_timer refresh_tick_watcher;
+    ev_timer_init (&refresh_tick_watcher, refresh_tick_cb, 1.0, 1.0 / refresh_rate);
+    ev_timer_start (main_loop, &refresh_tick_watcher);
+#endif
     /* Invoke the event callback once to catch all the events which were
      * received up until now. ev will only pick up new events (when the X11
      * file descriptor becomes readable). */

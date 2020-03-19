@@ -3,18 +3,18 @@
 echo-version:
 	@echo "@I3LOCK_VERSION@"
 
-bin_PROGRAMS = i3lock
+bin_PROGRAMS = i3lock-extended
 
-dist_man1_MANS = i3lock.1
+dist_man1_MANS = i3lock-extended.1
 
 pamddir = $(sysconfdir)/pam.d
-pamd_files = pam/i3lock
+pamd_files = pam/i3lock-extended
 pamd_DATA = $(pamd_files)
 
 AM_CPPFLAGS = \
 	@AX_EXTEND_SRCDIR_CPPFLAGS@
 
-i3lock_CFLAGS = \
+i3lock_extended_CFLAGS = \
 	$(AM_CFLAGS) \
 	$(XCB_CFLAGS) \
 	$(XCB_IMAGE_CFLAGS) \
@@ -22,13 +22,14 @@ i3lock_CFLAGS = \
 	$(XCB_UTIL_XRM_CFLAGS) \
 	$(XKBCOMMON_CFLAGS) \
 	$(CAIRO_CFLAGS) \
+	-DEXTRAS \
 	$(CODE_COVERAGE_CFLAGS)
 
-i3lock_CPPFLAGS = \
+i3lock_extended_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	$(CODE_COVERAGE_CPPFLAGS)
 
-i3lock_LDADD = \
+i3lock_extended_LDADD = \
 	$(XCB_LIBS) \
 	$(XCB_IMAGE_LIBS) \
 	$(XCB_UTIL_LIBS) \
@@ -37,10 +38,12 @@ i3lock_LDADD = \
 	$(CAIRO_LIBS) \
 	$(CODE_COVERAGE_LDFLAGS)
 
-i3lock_SOURCES = \
+i3lock_extended_SOURCES = \
 	cursors.h \
 	dpi.c \
 	dpi.h \
+	extras.c \
+	extras.h \
 	i3lock.c \
 	i3lock.h \
 	randr.c \
