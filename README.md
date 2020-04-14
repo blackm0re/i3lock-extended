@@ -47,8 +47,8 @@ extended revision if used].
 ### From source
 
    ```bash
-   wget https://simeon.simeonov.no/programs/i3lock_extended/downloads/i3lock-extended-\<version\>.tar.xz
-   tar Jxvf i3lock-extended-\<version\>.tar.xz && cd i3lock-extended-\<version\>
+   wget https://simeon.simeonov.no/programs/i3lock_extended/downloads/i3lock-extended-<version>.tar.xz
+   tar Jxvf i3lock-extended-<version>.tar.xz && cd i3lock-extended-<version>
    ./configure --prefix=/usr --sysconfdir=/etc --disable-sanitizers
    make
    # make install

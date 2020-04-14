@@ -2,7 +2,7 @@
 # Run autoreconf -fi to generate a configure script from this file.
 
 AC_PREREQ([2.69])
-AC_INIT([i3lock-extended], [1.2.12.1], [https://simeon.simeonov.no])
+AC_INIT([i3lock-extended], [1.2.12], [https://simeon.simeonov.no])
 # For AX_EXTEND_SRCDIR
 AX_ENABLE_BUILDDIR
 AM_INIT_AUTOMAKE([foreign subdir-objects -Wall no-dist-gzip dist-bzip2])
