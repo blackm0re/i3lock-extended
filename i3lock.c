@@ -1384,7 +1384,11 @@ int main(int argc, char *argv[]) {
 
 #ifndef __OpenBSD__
     /* Initialize PAM */
+#ifdef EXTRAS
+    if ((ret = pam_start("i3lock-extended", username, &conv, &pam_handle)) != PAM_SUCCESS)
+#else
     if ((ret = pam_start("i3lock", username, &conv, &pam_handle)) != PAM_SUCCESS)
+#endif
         errx(EXIT_FAILURE, "PAM: %s", pam_strerror(pam_handle, ret));
 
     if ((ret = pam_set_item(pam_handle, PAM_TTY, getenv("DISPLAY"))) != PAM_SUCCESS)

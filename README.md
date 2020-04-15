@@ -39,8 +39,20 @@ extended revision if used].
 ### Gentoo
 
    ```bash
-   layman -a sgs
-   emerge x11-misc/i3lock-extended
+   # layman -a sgs
+   # emerge x11-misc/i3lock-extended
+   ```
+
+### Fedora
+
+Set up a custom repo as described: https://pkg.pichove.org/Fedora/README.txt
+
+Key fingerprint: A664 5797 661E 2F47 3DD3  FF06 BCE7 0555 C3BB 08F7
+
+Install the package:
+
+   ```bash
+   $ sudo dnf install i3lock-extended
    ```
 
 

@@ -1,3 +1,9 @@
+2020-04-15 i3lock-extended 1.2.12a
+
+ • Fix a PAM related bug
+ • Update README.md
+
+
 2020-03-19 i3lock-extended 1.2.12
 
  • Initial import and functionality
