@@ -39,11 +39,11 @@ extended revision if used].
 ### Gentoo
 
    ```bash
-   # layman -a sgs
-   # emerge x11-misc/i3lock-extended
+   layman -a sgs
+   emerge x11-misc/i3lock-extended
    ```
 
-### Fedora
+### Fedora ( >= 31)
 
 Set up a custom repo as described: https://pkg.pichove.org/Fedora/README.txt
 
@@ -52,7 +52,7 @@ Key fingerprint: A664 5797 661E 2F47 3DD3  FF06 BCE7 0555 C3BB 08F7
 Install the package:
 
    ```bash
-   $ sudo dnf install i3lock-extended
+   sudo dnf install i3lock-extended
    ```
 
 
@@ -63,7 +63,7 @@ Install the package:
    tar Jxvf i3lock-extended-<version>.tar.xz && cd i3lock-extended-<version>
    ./configure --prefix=/usr --sysconfdir=/etc --disable-sanitizers
    make
-   # make install
+   make install
    ```
 
 
@@ -74,8 +74,21 @@ Install the package:
    autoreconf --force --install
    ./configure --prefix=/usr --sysconfdir=/etc --disable-sanitizers
    make
-   # make install
+   make install
    ```
+
+
+## Examples
+
+The following invocation
+
+   ```bash
+   i3lock-extended -f -L -n -S 32 -c 000000 -F 000000 -O 00FF00 -B 7f7f7f -R 7f7f7f -G 7f7f7f -D -E
+   ```
+
+produces the following result:
+
+![Screenshot](https://simeon.simeonov.no/programs/i3lock_extended/screenshot.png)
 
 
 ## Support and contributing
