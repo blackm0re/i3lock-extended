@@ -58,12 +58,15 @@ extern bool debug_mode;
 
 #ifdef EXTRAS
 /* timekeeping */
+#define I3LOCK_COUNT_UNTIL_BUFFER 128
+char count_until_str[I3LOCK_COUNT_UNTIL_BUFFER];
 time_t now;
 struct tm *brokentime;
 /* enable the digital clock */
 extern bool digital_clock;
 extern bool led_clock;
 extern bool elapsed_time;
+extern int count_until;
 extern i3lock_digital_clock_t i3lock_digital_clock;
 extern i3lock_elapsed_time_t i3lock_elapsed_time;
 extern i3lock_led_clock_t i3lock_led_clock;
@@ -359,17 +362,30 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
                                   resolution,
                                   brokentime);
     }
-    /* elapsed time or display text */
+    /* elapsed time or counter with display text or only display text */
     if (elapsed_time) {
         i3lock_draw_elapsed_time(xcb_ctx,
                                  &i3lock_elapsed_time,
                                  resolution,
                                  &now);
     } else if (display_text != NULL) {
-        i3lock_draw_string(xcb_ctx,
-                           display_text,
-                           &i3lock_elapsed_time,
-                           resolution);
+        if (count_until) {
+            if (i3lock_format_elapsed_time(
+                    count_until_str,
+                    display_text,
+                    I3LOCK_COUNT_UNTIL_BUFFER,
+                    count_until - (int) now) != NULL) {
+                i3lock_draw_string(xcb_ctx,
+                                   count_until_str,
+                                   &i3lock_elapsed_time,
+                                   resolution);
+            }
+        } else {
+            i3lock_draw_string(xcb_ctx,
+                               display_text,
+                               &i3lock_elapsed_time,
+                               resolution);
+        }
     }
 #endif
     if (xr_screens > 0) {

@@ -84,6 +84,7 @@ static void input_done(void);
 bool digital_clock = false;
 bool led_clock = false;
 bool elapsed_time = false;
+int count_until = 0; /* count seconds until */
 int refresh_rate = 2; /* 2 frames per second */
 i3lock_digital_clock_t i3lock_digital_clock = {28,
                                                "000000",
@@ -1083,6 +1084,7 @@ int main(int argc, char *argv[]) {
         {"dpms", no_argument, NULL, 'd'},
         {"color", required_argument, NULL, 'c'},
 #ifdef EXTRAS
+        {"count-until", no_argument, NULL, 'C'},
         {"digital-clock", no_argument, NULL, 'D'},
         {"digital-clock-color", required_argument, NULL, 'G'},
         {"digital-clock-template", required_argument, NULL, 'T'},
@@ -1122,7 +1124,7 @@ int main(int argc, char *argv[]) {
         errx(EXIT_FAILURE, "i3lock is a program for X11 and does not work on Wayland. Try https://github.com/swaywm/swaylock instead");
 
 #ifdef EXTRAS
-    char *optstring = "hvnbDdELc:B:G:F:J:O:R:r:S:T:W:X:x:Y:y:Z:p:ui:teI:f";
+    char *optstring = "hvnbDdELC:c:B:G:F:J:O:R:r:S:T:W:X:x:Y:y:Z:p:ui:teI:f";
 #else
     char *optstring = "hvnbdc:p:ui:teI:f";
 #endif
@@ -1156,6 +1158,12 @@ int main(int argc, char *argv[]) {
                 break;
             }
 #ifdef EXTRAS
+            case 'C': /* count until */
+                if (optarg != NULL && atoi(optarg) > 0) /* not nice with -1 and 0 */
+                    count_until = atoi(optarg);
+                DEBUG("count_until: %d\n",
+                      count_until);
+                break;
             case 'D':
                 digital_clock = true;
                 break;

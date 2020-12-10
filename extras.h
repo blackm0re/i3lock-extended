@@ -88,7 +88,6 @@ void i3lock_draw_elapsed_time(cairo_t *cr,
                               const uint32_t *resolution,
                               const time_t *now);
 
-
 void i3lock_draw_led_clock(cairo_t *cr,
                            const i3lock_led_clock_t *lc,
                            const uint32_t *resolution,
@@ -99,4 +98,9 @@ void i3lock_draw_string(cairo_t *cr,
                         const char *formatted_string,
                         const i3lock_elapsed_time_t *et,
                         const uint32_t *resolution);
+
+char * i3lock_format_elapsed_time(char *to,
+                                  const char *template,
+                                  int max_size,
+                                  int seconds);
 #endif

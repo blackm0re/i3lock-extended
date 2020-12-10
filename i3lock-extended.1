@@ -8,7 +8,7 @@
 .fi
 ..
 
-.TH i3lock\-extended 1 "MARCH 2020" Linux "User Manuals"
+.TH i3lock\-extended 1 "DECEMBER 2020" Linux "User Manuals"
 
 .SH NAME
 i3lock\-extended \- improved screen locker
@@ -18,6 +18,8 @@ i3lock\-extended \- improved screen locker
 .RB [\|\-B
 .IR color \|]
 .RB [\|\-b\|]
+.RB [\|\-C
+.IR seconds \|]
 .RB [\|\-c
 .IR color \|]
 .RB [\|\-D\|]
@@ -94,6 +96,8 @@ Digital clock
 Elapsed time since activation
 .IP \[bu]
 Display-text
+.IP \[bu]
+Count to a specific calendar time (absolute time)
 
 .SH OPTIONS
 .TP
@@ -110,6 +114,14 @@ like when opening your laptop in a boring lecture.
 .BI \-c\  rrggbb \fR,\ \fB\-\-color= rrggbb
 Turn the screen into the given color instead of white.
 Color must be given in 3-byte. Default: ffffff (white).
+
+.TP
+.BI \-C\  seconds \fR,\ \fB\-\-count\-until= seconds
+Sets the seconds since the Epoch to count to. date +%s -d ... can be used to
+get the Epoch time. Then the following macros will become available for the
+display-text parameter: %d - days remaining until the time set,
+%h - hours remaining, %m - minutes remaining, %s - seconds remaining,
+%S - total amount of seconds remaining. Default: 0 (count until is off).
 
 .TP
 .B \-D, \-\-digital\-clock

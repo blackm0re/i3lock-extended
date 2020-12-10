@@ -132,6 +132,61 @@ static void i3lock_draw_led(cairo_t *cr,
 }
 
 
+static char * i3lock_replace_str(char *to,
+                                 const char *from,
+                                 const char *old_substr,
+                                 const char *new_substr,
+                                 size_t max_length) {
+
+    int offset; /* the offset in the tmp_str after each match */
+
+    /* the offset in from needed to pick up the right side after a match */
+    int from_offset;
+
+    int from_len = strlen(from);
+    int new_substr_len = strlen(new_substr);
+    int old_substr_len = strlen(old_substr);
+    int len_diff = old_substr_len - new_substr_len;
+    size_t free_space = max_length - 1;
+    char tmp_str[max_length];
+    char *tmp_str_ptr;
+
+    /* reserve the last byte for '\0' in case of clipping */
+    strncpy(tmp_str, from, free_space);
+
+    for (int i = 0; ; ++i) {
+        tmp_str_ptr = strstr(tmp_str, old_substr);
+        if (tmp_str_ptr == NULL) {
+            /* no more instances of old_substr */
+            break;
+        }
+
+        offset = tmp_str_ptr - tmp_str;
+        free_space -= offset;
+        if (free_space <= new_substr_len) {
+            strncpy(tmp_str_ptr, new_substr, free_space);
+            break;
+        }
+        strncpy(tmp_str_ptr, new_substr, new_substr_len);
+        free_space -= new_substr_len;
+        /* tmp_str offset -> from_offset mapping */
+        from_offset = offset + old_substr_len + i * len_diff;
+        if (free_space <= from_len - from_offset) {
+            strncpy(tmp_str_ptr + new_substr_len, from + from_offset, free_space);
+            break;
+        }
+        strncpy(tmp_str_ptr + new_substr_len, from + from_offset, from_len - from_offset + 1);
+
+    }
+
+    strncpy(to, tmp_str, max_length - 1);
+    *(to + (max_length - 1)) = '\0';
+
+    return to;
+
+}
+
+
 void i3lock_draw_digital_clock(cairo_t *cr,
                                const i3lock_digital_clock_t *dc,
                                const uint32_t *resolution,
@@ -440,9 +495,56 @@ void i3lock_draw_led_clock(cairo_t *cr,
                             brokentime->tm_sec & 1,
                             lc);
         }
+
         return;
+
     }
 
 }
 
 
+char * i3lock_format_elapsed_time(char *to,
+                                  const char *template,
+                                  int max_size,
+                                  int seconds) {
+
+    char tmp_str[max_size];
+    char int_str[32]; /* more than enough for int */
+    int days = seconds / 86400;
+    int hours = (seconds - days * 86400) / 3600;
+    int minutes = (seconds - days * 86400 - hours * 3600) / 60;
+    int rest_seconds = seconds - days * 86400 - hours * 3600 - minutes * 60;
+
+    strncpy(tmp_str, template, max_size);
+    if (strlen(template) >= max_size) {
+        /* do a proper clipping */
+        *(tmp_str + (max_size - 1)) = '\0';
+    }
+
+    /* days */
+    snprintf(int_str, 32, "%d", days);
+    i3lock_replace_str(to, tmp_str, "%d", int_str, max_size);
+    strcpy(tmp_str, to);
+
+    /* hours */
+    snprintf(int_str, 32, "%d", hours);
+    i3lock_replace_str(to, tmp_str, "%h", int_str, max_size);
+    strcpy(tmp_str, to);
+
+    /* minutes */
+    snprintf(int_str, 32, "%d", minutes);
+    i3lock_replace_str(to, tmp_str, "%m", int_str, max_size);
+    strcpy(tmp_str, to);
+
+    /* rest. seconds */
+    snprintf(int_str, 32, "%d", rest_seconds);
+    i3lock_replace_str(to, tmp_str, "%s", int_str, max_size);
+    strcpy(tmp_str, to);
+
+    /* seconds */
+    snprintf(int_str, 32, "%d", seconds);
+    i3lock_replace_str(to, tmp_str, "%S", int_str, max_size);
+
+    return to;
+
+}
