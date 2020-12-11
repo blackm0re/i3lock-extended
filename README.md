@@ -84,10 +84,12 @@ while
    ```bash
    date +%s -d"Jan 1, 2021 00:00:00"
    # returns seconds since the Epoch (f.i. 1609455600)
-   i3lock-extended -f -L -n -S 32 -c 000000 -F 000000 -O 00FF00 -B 7f7f7f -R 7f7f7f -G 7f7f7f -D -E -C 1609455600 -W left -Z top -J "%d days, %h hours, %m minutes and %s seconds until 2021"
+   i3lock-extended -f -L -n -S 32 -c 000000 -F 000000 -O 00FF00 -B 7f7f7f -R 7f7f7f -G 7f7f7f \ 
+   -D -C 1609455600 -W left -Z top -J "%d days, %h hours, %m minutes and %s seconds until 2021"
    ```
 
-also displays the broken-down time until 2021 using the specified template (-J) in the top left corner.
+also displays the broken-down time until 2021 using the specified template (-J)
+in the top left corner (instead of elapsed time).
 
 
 ## Support and contributing
