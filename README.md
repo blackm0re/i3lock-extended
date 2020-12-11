@@ -18,6 +18,7 @@ can be found as INSTALL.md.
 - Digital clock
 - Elapsed time since activation
 - Display-text
+- Count broken-down time until a specific calendar time (absolute time)
 
 i3lock-extended includes all of the original code and features of i3lock.
 
@@ -41,18 +42,6 @@ extended revision if used].
    ```bash
    layman -a sgs
    emerge x11-misc/i3lock-extended
-   ```
-
-### Fedora ( >= 31)
-
-Set up a custom repo as described: https://pkg.pichove.org/Fedora/README.txt
-
-Key fingerprint: A664 5797 661E 2F47 3DD3  FF06 BCE7 0555 C3BB 08F7
-
-Install the package:
-
-   ```bash
-   sudo dnf install i3lock-extended
    ```
 
 
@@ -89,6 +78,16 @@ The following invocation
 produces the following result:
 
 ![Screenshot](https://simeon.simeonov.no/programs/i3lock_extended/screenshot.png)
+
+while
+
+   ```bash
+   date +%s -d"Jan 1, 2021 00:00:00"
+   # returns seconds since the Epoch (f.i. 1609455600)
+   i3lock-extended -f -L -n -S 32 -c 000000 -F 000000 -O 00FF00 -B 7f7f7f -R 7f7f7f -G 7f7f7f -D -E -C 1609455600 -W left -Z top -J "%d days, %h hours, %m minutes and %s seconds until 2021"
+   ```
+
+also displays the broken-down time until 2021 using the specified template (-J) in the top left corner.
 
 
 ## Support and contributing
