@@ -1372,14 +1372,14 @@ int main(int argc, char *argv[]) {
 #ifdef EXTRAS
                 errx(
                     EXIT_FAILURE,
-                    "Syntax: i3lock-extended [-v] [-n] [-b] [-D] [-d] [-E] "
-                    "[-L] [-c color] [-B color] [-F color] [-G color] "
-                    "[-J text] [-O color] [-R color] [-r refresh rate] [-u] "
+                    "Syntax: i3lock-extended [-B color] [-b] [-C seconds] "
+                    "[-c color] [-D] [-d] [-E] [-e] [-F color] [-f] "
+                    "[-G color] [-h] [-I timeout] [-i image.png] [-J text] "
+                    "[-L] [-n] [-O color] [-p win|default] [-R color] "
+                    "[-r refresh rate] [-S size] [-T template] [-t] [-u] [-v] "
                     "[-W horizontal-alignment] [-X horizontal-alignment] "
                     "[-x horizontal-alignment] [-Y vertical-alignment] "
-                    "[-y vertical-alignment] [-Z vertical-alignment] "
-                    "[-p win|default] [-i image.png] [-t] [-e] [-I timeout] "
-                    "[-f]");
+                    "[-y vertical-alignment] [-Z vertical-alignment]");
 #else
                 errx(EXIT_FAILURE, "Syntax: i3lock [-v] [-n] [-b] [-d] [-c color] [-u] [-p win|default]"
                                    " [-i image.png] [-t] [-e] [-I timeout] [-f]");
