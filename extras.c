@@ -510,6 +510,13 @@ char * i3lock_format_elapsed_time(char *to,
 
     char tmp_str[max_size];
     char int_str[32]; /* more than enough for int */
+
+    if (seconds < 0) {
+        if (!(seconds % 3))
+            return NULL;
+        seconds = 0;
+    }
+
     int days = seconds / 86400;
     int hours = (seconds - days * 86400) / 3600;
     int minutes = (seconds - days * 86400 - hours * 3600) / 60;
