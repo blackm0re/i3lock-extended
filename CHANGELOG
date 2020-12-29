@@ -1,4 +1,4 @@
-2020-04-15 i3lock-extended 2.2.13a
+2020-12-29 i3lock-extended 2.2.13a
 
  • Fix and sort the help (-h) string
  • Display blinking text when --count-until has passed
