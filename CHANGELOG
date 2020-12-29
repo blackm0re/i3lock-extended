@@ -1,8 +1,14 @@
+2020-04-15 i3lock-extended 2.2.13a
+
+ • Fix and sort the help (-h) string
+ • Display blinking text when --count-until has passed
+ • Update README.md
+
+
 2020-12-11 i3lock-extended 2.2.13
 
- • Sync with i3lock 2.13
- • Add support for counting broken-down time until a specific calendar time (-C)
- • Update documentation accordingly
+ • Sync with i3lock 2.13 • Add support for counting broken-down
+   time until a specific calendar time (-C) • Update documentationa accordingly
 
 
 2020-04-15 i3lock-extended 1.2.12a
