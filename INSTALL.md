@@ -1,6 +1,6 @@
 i3lock - improved screen locker
 ===============================
-[i3lock](https://i3wm.org/i3lock/)> is a simple screen locker like slock.
+[i3lock](https://i3wm.org/i3lock/) is a simple screen locker like slock.
 After starting it, you will see a white screen (you can configure the
 color/an image). You can return to your screen by entering your password.
 
@@ -44,8 +44,16 @@ Requirements
 
 Running i3lock
 -------------
-Simply invoke the 'i3lock' command. To get out of it, enter your password and
-press enter.
+
+To test i3lock, you can directly run the `i3lock` command. To get out of it,
+enter your password and press enter.
+
+For a more permanent setup, we strongly recommend using `xss-lock` so that the
+screen is locked *before* your laptop suspends:
+
+```
+xss-lock --transfer-sleep-lock -- i3lock --nofork
+```
 
 On OpenBSD the `i3lock` binary needs to be setgid `auth` to call the
 authentication helpers, e.g. `/usr/libexec/auth/login_passwd`.
@@ -58,17 +66,11 @@ i3lock unless you have a reason to do so.
 First install the dependencies listed in requirements section, then run these
 commands (might need to be adapted to your OS):
 ```
-autoreconf --force --install
-
 rm -rf build/
 mkdir -p build && cd build/
 
-../configure \
-  --prefix=/usr \
-  --sysconfdir=/etc \
-  --disable-sanitizers
-
-make
+meson .. -Dprefix=/usr
+ninja
 ```
 
 Upstream

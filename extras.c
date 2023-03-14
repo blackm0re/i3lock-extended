@@ -1,6 +1,6 @@
 /*
  * This file is part of i3lock-extended
- * Copyright (C) 2020 Simeon Simeonov
+ * Copyright (C) 2020-2023 Simeon Simeonov
 
  * i3lock-extended is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

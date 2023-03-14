@@ -1,7 +1,7 @@
 # i3lock-extended
 
 i3lock-extended is a fork of i3lock (https://github.com/i3/i3lock).
-It was started by Simeon Simeonov (sgs @ Freenode) as a small hack, 
+It was started by Simeon Simeonov (sgs @ LiberaChat) as a small hack, 
 implementing a LED-clock on top of an existing and robust screensaver.
 
 i3lock-extended adds some additional functionality and is a free-software
@@ -40,7 +40,9 @@ extended revision if used].
 ### Gentoo
 
    ```bash
-   layman -a sgs
+   # add sgs' custom repository using app-eselect/eselect-repository
+   eselect repository add sgs
+
    emerge x11-misc/i3lock-extended
    ```
 
@@ -58,25 +60,26 @@ Install the package:
    ```
 
 
-### From source
+### From source (meson > 0.55.0)
 
    ```bash
-   wget https://simeon.simeonov.no/programs/i3lock_extended/downloads/i3lock-extended-<version>.tar.xz
-   tar Jxvf i3lock-extended-<version>.tar.xz && cd i3lock-extended-<version>
-   ./configure --prefix=/usr --sysconfdir=/etc --disable-sanitizers
-   make
-   make install
+   wget https://github.com/blackm0re/i3lock_extended/releases/download/<version>/i3lock-extended-<version>.tar.xz
+   tar Jxvf i3lock-extended-<version>.tar.xz
+   cd i3lock-extended-<version>
+   meson setup build --prefix=/usr
+   meson compile -C build
+   sudo meson install -C build
    ```
 
 
-### From git
+### From git (meson > 0.55.0)
 
    ```bash
-   git clone https://github.com/blackm0re/i3lock-extended.git && cd i3lock-extended
-   autoreconf --force --install
-   ./configure --prefix=/usr --sysconfdir=/etc --disable-sanitizers
-   make
-   make install
+   git clone https://github.com/blackm0re/i3lock-extended.git
+   cd i3lock-extended
+   meson setup build --prefix=/usr
+   meson compile -C build
+   sudo meson install -C build
    ```
 
 
@@ -112,12 +115,12 @@ i3lock-extended is hosted on GitHub: https://github.com/blackm0re/i3lock-extende
 
 ## Author
 
-Simeon Simeonov - sgs @ Freenode
+Simeon Simeonov - sgs @ LiberaChat
 
 
 ## [License](https://github.com/blackm0re/i3lock-extended/blob/master/LICENSE)
 
-Copyright 2020 Simeon Simeonov
+Copyright 2020-2023 Simeon Simeonov
 
 Licensed under the GPLv3: http://www.gnu.org/licenses/gpl-3.0.html
 

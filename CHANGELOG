@@ -1,3 +1,9 @@
+2023-03-18 i3lock-extended 2.2.14
+
+ • Fetch and sync with i3lock 2.14.1
+ • Update README.md
+
+
 2020-12-29 i3lock-extended 2.2.13a
 
  • Fix and sort the help (-h) string
