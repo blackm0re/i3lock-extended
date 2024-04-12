@@ -1,6 +1,6 @@
 /*
  * This file is part of i3lock-extended
- * Copyright (C) 2020-2023 Simeon Simeonov
+ * Copyright (C) 2020-2024 Simeon Simeonov
 
  * i3lock-extended is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -130,6 +130,7 @@ extern unlock_state_t unlock_state;
 extern auth_state_t auth_state;
 int failed_attempts = 0;
 bool show_failed_attempts = false;
+bool show_keyboard_layout = false;
 bool retry_verification = false;
 
 struct xkb_state *xkb_state;
@@ -162,6 +163,9 @@ static void u8_dec(char *s, int *i) {
  * Necessary so that we can properly let xkbcommon track the keyboard state and
  * translate keypresses to utf-8.
  *
+ * This function can be called when the user changes the XKB configuration,
+ * so it must not leave unusable global state behind
+ *
  */
 static bool load_keymap(void) {
     if (xkb_context == NULL) {
@@ -171,25 +175,26 @@ static bool load_keymap(void) {
         }
     }
 
-    xkb_keymap_unref(xkb_keymap);
-
     int32_t device_id = xkb_x11_get_core_keyboard_device_id(conn);
     DEBUG("device = %d\n", device_id);
-    if ((xkb_keymap = xkb_x11_keymap_new_from_device(xkb_context, conn, device_id, 0)) == NULL) {
+    struct xkb_keymap *new_keymap = xkb_x11_keymap_new_from_device(xkb_context, conn, device_id, 0);
+    if (new_keymap == NULL) {
         fprintf(stderr, "[i3lock] xkb_x11_keymap_new_from_device failed\n");
         return false;
     }
 
     struct xkb_state *new_state =
-        xkb_x11_state_new_from_device(xkb_keymap, conn, device_id);
+        xkb_x11_state_new_from_device(new_keymap, conn, device_id);
     if (new_state == NULL) {
         fprintf(stderr, "[i3lock] xkb_x11_state_new_from_device failed\n");
         return false;
     }
 
+    /* Only update global state on success */
     xkb_state_unref(xkb_state);
+    xkb_keymap_unref(xkb_keymap);
     xkb_state = new_state;
-
+    xkb_keymap = new_keymap;
     return true;
 }
 
@@ -954,6 +959,7 @@ static void xcb_check_cb(EV_P_ ev_check *w, int revents) {
             default:
                 if (type == xkb_base_event) {
                     process_xkb_event(event);
+                    redraw_screen();
                 }
                 if (randr_base > -1 &&
                     type == randr_base + XCB_RANDR_SCREEN_CHANGE_NOTIFY) {
@@ -1079,6 +1085,7 @@ int main(int argc, char *argv[]) {
         {"ignore-empty-password", no_argument, NULL, 'e'},
         {"inactivity-timeout", required_argument, NULL, 'I'},
         {"show-failed-attempts", no_argument, NULL, 'f'},
+        {"show-keyboard-layout", no_argument, NULL, 'k'},
         {NULL, no_argument, NULL, 0}};
 
     if ((pw = getpwuid(getuid())) == NULL)
@@ -1089,14 +1096,14 @@ int main(int argc, char *argv[]) {
         errx(EXIT_FAILURE, "i3lock is a program for X11 and does not work on Wayland. Try https://github.com/swaywm/swaylock instead");
 
 #ifdef EXTRAS
-    char *optstring = "hvnbDdELC:c:B:G:F:J:O:R:r:S:T:W:X:x:Y:y:Z:p:ui:teI:f";
+    char *optstring = "hvnbDdELC:c:B:G:F:J:O:R:r:S:T:W:X:x:Y:y:Z:p:ui:teI:fk";
 #else
-    char *optstring = "hvnbdc:p:ui:teI:f";
+    char *optstring = "hvnbdc:p:ui:teI:fk";
 #endif
     while ((o = getopt_long(argc, argv, optstring, longopts, &longoptind)) != -1) {
         switch (o) {
             case 'v':
-                errx(EXIT_SUCCESS, "version " I3LOCK_VERSION " © 2010 Michael Stapelberg, 2020-2023 Simeon Simeonov");
+                errx(EXIT_SUCCESS, "version " I3LOCK_VERSION " © 2010 Michael Stapelberg, 2020-2024 Simeon Simeonov");
             case 'n':
                 dont_fork = true;
                 break;
@@ -1333,12 +1340,15 @@ int main(int argc, char *argv[]) {
             case 'f':
                 show_failed_attempts = true;
                 break;
+            case 'k':
+                show_keyboard_layout = true;
+                break;
             default:
 #ifdef EXTRAS
                 errx(
                     EXIT_FAILURE,
                     "Syntax: i3lock-extended [-B color] [-b] [-C seconds] "
-                    "[-c color] [-D] [-d] [-E] [-e] [-F color] [-f] "
+                    "[-c color] [-D] [-d] [-E] [-e] [-F color] [-f] [-k]"
                     "[-G color] [-h] [-I timeout] [-i image.png] [-J text] "
                     "[-L] [-n] [-O color] [-p win|default] [-R color] "
                     "[-r refresh rate] [-S size] [-T template] [-t] [-u] [-v] "
@@ -1347,7 +1357,7 @@ int main(int argc, char *argv[]) {
                     "[-y vertical-alignment] [-Z vertical-alignment]");
 #else
                 errx(EXIT_FAILURE, "Syntax: i3lock [-v] [-n] [-b] [-d] [-c color] [-u] [-p win|default]"
-                                   " [-i image.png] [-t] [-e] [-I timeout] [-f]");
+                                   " [-i image.png] [-t] [-e] [-I timeout] [-f] [-k]");
 #endif
         }
     }

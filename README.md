@@ -120,7 +120,7 @@ Simeon Simeonov - sgs @ LiberaChat
 
 ## [License](https://github.com/blackm0re/i3lock-extended/blob/master/LICENSE)
 
-Copyright 2020-2023 Simeon Simeonov
+Copyright 2020-2024 Simeon Simeonov
 
 Licensed under the GPLv3: http://www.gnu.org/licenses/gpl-3.0.html
 
