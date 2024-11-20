@@ -1,7 +1,7 @@
 /*
  * vim:ts=4:sw=4:expandtab
  *
- * i3 - an improved dynamic tiling window manager
+ * i3 - an improved tiling window manager
  * © 2009 Michael Stapelberg and contributors (see also: LICENSE)
  *
  */
@@ -103,7 +103,8 @@ int logical_px(const int logical) {
      * systems to 96 dpi in order to get the behavior they expect/are used to,
      * but since we can easily detect this case in code, let’s do it for them.
      */
-    if ((dpi / 96.0) < 1.25)
+    if ((dpi / 96.0) < 1.25) {
         return logical;
+    }
     return ceil((dpi / 96.0) * logical);
 }
