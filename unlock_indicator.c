@@ -59,20 +59,21 @@ extern bool debug_mode;
 
 #ifdef EXTRAS
 /* timekeeping */
-#define I3LOCK_COUNT_UNTIL_BUFFER 128
-char count_until_str[I3LOCK_COUNT_UNTIL_BUFFER];
+#define I3LOCK_DISPLAY_TEXT_BUFFER_SIZE 128
+char display_text[I3LOCK_DISPLAY_TEXT_BUFFER_SIZE];
 time_t now;
 struct tm *brokentime;
 /* enable the digital clock */
 extern bool digital_clock;
 extern bool led_clock;
 extern bool elapsed_time;
+extern bool unix_time;
 extern int count_until;
 extern i3lock_digital_clock_t i3lock_digital_clock;
 extern i3lock_elapsed_time_t i3lock_elapsed_time;
 extern i3lock_led_clock_t i3lock_led_clock;
 /* display text */
-extern char *display_text;
+extern char *display_text_template;
 #endif
 
 /* The current position in the input buffer. Useful to determine if any
@@ -438,27 +439,37 @@ void draw_image(xcb_pixmap_t bg_pixmap, uint32_t *resolution) {
                                   resolution,
                                   brokentime);
     }
-    /* elapsed time or counter with display text or only display text */
+
+    /* elapsed time, counter with display text, UNIX time or display text */
     if (elapsed_time) {
         i3lock_draw_elapsed_time(xcb_ctx,
                                  &i3lock_elapsed_time,
                                  resolution,
                                  &now);
-    } else if (display_text != NULL) {
+    } else if (unix_time) {
+        snprintf(display_text,
+                 I3LOCK_DISPLAY_TEXT_BUFFER_SIZE,
+                 "%d", (int) now);
+        i3lock_draw_string(xcb_ctx,
+                           display_text,
+                           &i3lock_elapsed_time,
+                           resolution);
+    } else if (display_text_template != NULL) {
+        /* display text */
         if (count_until) {
             if (i3lock_format_elapsed_time(
-                    count_until_str,
                     display_text,
-                    I3LOCK_COUNT_UNTIL_BUFFER,
+                    display_text_template,
+                    I3LOCK_DISPLAY_TEXT_BUFFER_SIZE,
                     count_until - (int) now) != NULL) {
                 i3lock_draw_string(xcb_ctx,
-                                   count_until_str,
+                                   display_text,
                                    &i3lock_elapsed_time,
                                    resolution);
             }
         } else {
             i3lock_draw_string(xcb_ctx,
-                               display_text,
+                               display_text_template,
                                &i3lock_elapsed_time,
                                resolution);
         }

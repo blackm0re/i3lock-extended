@@ -46,11 +46,11 @@ static void i3lock_color_to_array(double *rgb16, const char *color) {
 }
 
 
-static void i3clock_fetch_digital_clock_xy(int *x,
-                                    int *y,
-                                    const i3lock_digital_clock_t *dc,
-                                    const uint32_t *resolution,
-                                    int text_length) {
+static void i3lock_fetch_digital_clock_xy(int *x,
+                                          int *y,
+                                          const i3lock_digital_clock_t *dc,
+                                          const uint32_t *resolution,
+                                          int text_length) {
 
     /* x */
     if (dc->horizontal_alignment == I3LOCK_ALIGN_CENTER) {
@@ -75,7 +75,7 @@ static void i3clock_fetch_digital_clock_xy(int *x,
 }
 
 
-static void i3clock_fetch_led_clock_xy(int *x,
+static void i3lock_fetch_led_clock_xy(int *x,
                                        int *y,
                                        const i3lock_led_clock_t *lc,
                                        const uint32_t *resolution) {
@@ -211,11 +211,11 @@ void i3lock_draw_digital_clock(cairo_t *cr,
         for (screen = 0; screen < xr_screens; ++screen) {
             screen_resolution[0] = xr_resolutions[screen].width;
             screen_resolution[1] = xr_resolutions[screen].height;
-            i3clock_fetch_digital_clock_xy(&x,
-                                           &y,
-                                           dc,
-                                           screen_resolution,
-                                           strlen(current_time_str));
+            i3lock_fetch_digital_clock_xy(&x,
+                                          &y,
+                                          dc,
+                                          screen_resolution,
+                                          strlen(current_time_str));
             cairo_move_to(cr,
                           x + xr_resolutions[screen].x,
                           y + xr_resolutions[screen].y);
@@ -224,11 +224,11 @@ void i3lock_draw_digital_clock(cairo_t *cr,
         return;
     }
 
-    i3clock_fetch_digital_clock_xy(&x,
-                                   &y,
-                                   dc,
-                                   resolution,
-                                   strlen(current_time_str));
+    i3lock_fetch_digital_clock_xy(&x,
+                                  &y,
+                                  dc,
+                                  resolution,
+                                  strlen(current_time_str));
     /* printf("%dx%d\n", *resolution, *(resolution + 1)); */
     cairo_move_to(cr, x, y);
     cairo_show_text(cr, current_time_str);
@@ -244,7 +244,7 @@ void i3lock_draw_string(cairo_t *cr,
     int x, y;
 
     /* create a dummy i3lock_digital_clock_t structure in order to reuse
-       i3clock_fetch_digital_clock_xy */
+       i3lock_fetch_digital_clock_xy */
     i3lock_digital_clock_t dc = {et->text_size,
                                  "",
                                  "",
@@ -263,11 +263,11 @@ void i3lock_draw_string(cairo_t *cr,
         for (screen = 0; screen < xr_screens; ++screen) {
             screen_resolution[0] = xr_resolutions[screen].width;
             screen_resolution[1] = xr_resolutions[screen].height;
-            i3clock_fetch_digital_clock_xy(&x,
-                                           &y,
-                                           &dc,
-                                           screen_resolution,
-                                           strlen(formatted_string));
+            i3lock_fetch_digital_clock_xy(&x,
+                                          &y,
+                                          &dc,
+                                          screen_resolution,
+                                          strlen(formatted_string));
             cairo_move_to(cr,
                           x + xr_resolutions[screen].x,
                           y + xr_resolutions[screen].y);
@@ -276,11 +276,11 @@ void i3lock_draw_string(cairo_t *cr,
         return;
     }
 
-    i3clock_fetch_digital_clock_xy(&x,
-                                   &y,
-                                   &dc,
-                                   resolution,
-                                   strlen(formatted_string));
+    i3lock_fetch_digital_clock_xy(&x,
+                                  &y,
+                                  &dc,
+                                  resolution,
+                                  strlen(formatted_string));
     /* printf("%dx%d\n", *resolution, *(resolution + 1)); */
     cairo_move_to(cr, x, y);
     cairo_show_text(cr, formatted_string);
@@ -297,7 +297,7 @@ void i3lock_draw_elapsed_time(cairo_t *cr,
     int x, y, seconds, minutes, hours, diff_seconds;
 
     /* create a dummy i3lock_digital_clock_t structure in ordet to reuse
-       i3clock_fetch_digital_clock_xy */
+       i3lock_fetch_digital_clock_xy */
     i3lock_digital_clock_t dc = {et->text_size,
                                  "",
                                  "",
@@ -339,11 +339,11 @@ void i3lock_draw_elapsed_time(cairo_t *cr,
         for (screen = 0; screen < xr_screens; ++screen) {
             screen_resolution[0] = xr_resolutions[screen].width;
             screen_resolution[1] = xr_resolutions[screen].height;
-            i3clock_fetch_digital_clock_xy(&x,
-                                           &y,
-                                           &dc,
-                                           screen_resolution,
-                                           strlen(elapsed_time_str));
+            i3lock_fetch_digital_clock_xy(&x,
+                                          &y,
+                                          &dc,
+                                          screen_resolution,
+                                          strlen(elapsed_time_str));
             cairo_move_to(cr,
                           x + xr_resolutions[screen].x,
                           y + xr_resolutions[screen].y);
@@ -352,11 +352,11 @@ void i3lock_draw_elapsed_time(cairo_t *cr,
         return;
     }
 
-    i3clock_fetch_digital_clock_xy(&x,
-                                   &y,
-                                   &dc,
-                                   resolution,
-                                   strlen(elapsed_time_str));
+    i3lock_fetch_digital_clock_xy(&x,
+                                  &y,
+                                  &dc,
+                                  resolution,
+                                  strlen(elapsed_time_str));
     /* printf("%dx%d\n", *resolution, *(resolution + 1)); */
     cairo_move_to(cr, x, y);
     cairo_show_text(cr, elapsed_time_str);
@@ -379,10 +379,10 @@ void i3lock_draw_led_clock(cairo_t *cr,
             screen_resolution[1] = xr_resolutions[screen].height;
             side_length = xr_resolutions[screen].height / I3LOCK_SCALE_LED_SPACING;
             space_length = xr_resolutions[screen].height / I3LOCK_SCALE_LED_LENGTH;
-            i3clock_fetch_led_clock_xy(&base_x,
-                                       &base_y,
-                                       lc,
-                                       screen_resolution);
+            i3lock_fetch_led_clock_xy(&base_x,
+                                      &base_y,
+                                      lc,
+                                      screen_resolution);
             base_x += xr_resolutions[screen].x;
             base_y += xr_resolutions[screen].y;
             base_x_h = base_x + space_length / 2 + side_length / 2;

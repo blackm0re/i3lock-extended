@@ -84,6 +84,7 @@ static void input_done(void);
 bool digital_clock = false;
 bool led_clock = false;
 bool elapsed_time = false;
+bool unix_time = false; /* display seconds since epoch */
 int count_until = 0; /* count seconds until */
 int refresh_rate = 2; /* 2 frames per second */
 i3lock_digital_clock_t i3lock_digital_clock = {28,
@@ -103,7 +104,7 @@ i3lock_led_clock_t i3lock_led_clock = {"ffff00",
                                        "000000",
                                        I3LOCK_ALIGN_CENTER,
                                        I3LOCK_ALIGN_BOTTOM};
-char *display_text = NULL;
+char *display_text_template = NULL;
 #endif
 
 char color[7] = "a3a3a3";
@@ -1081,17 +1082,17 @@ int main(int argc, char *argv[]) {
         {"dpms", no_argument, NULL, 'd'},
         {"color", required_argument, NULL, 'c'},
 #ifdef EXTRAS
-        {"count-until", no_argument, NULL, 'C'},
+        {"count-until", required_argument, NULL, 'C'},
         {"digital-clock", no_argument, NULL, 'D'},
         {"digital-clock-color", required_argument, NULL, 'G'},
         {"digital-clock-template", required_argument, NULL, 'T'},
         {"digital-clock-halign", required_argument, NULL, 'x'},
         {"digital-clock-valign", required_argument, NULL, 'y'},
-        {"display-text", no_argument, NULL, 'J'},
+        {"display-text", required_argument, NULL, 'J'},
         {"elapsed-time", no_argument, NULL, 'E'},
-        {"elapsed-time-color", required_argument, NULL, 'R'},
-        {"elapsed-time-halign", required_argument, NULL, 'W'},
-        {"elapsed-time-valign", required_argument, NULL, 'Z'},
+        {"display-text-color", required_argument, NULL, 'R'},
+        {"display-text-halign", required_argument, NULL, 'W'},
+        {"display-text-valign", required_argument, NULL, 'Z'},
         {"led-clock", no_argument, NULL, 'L'},
         {"led-clock-halign", required_argument, NULL, 'X'},
         {"led-clock-valign", required_argument, NULL, 'Y'},
@@ -1100,6 +1101,7 @@ int main(int argc, char *argv[]) {
         {"led-on-color", required_argument, NULL, 'O'},
         {"refresh-rate", required_argument, NULL, 'r'},
         {"text-size", required_argument, NULL, 'S'},
+        {"unix-time", no_argument, NULL, 'U'},
 #endif
         {"pointer", required_argument, NULL, 'p'},
         {"debug", no_argument, NULL, 0},
@@ -1117,7 +1119,7 @@ int main(int argc, char *argv[]) {
     int code = EXIT_FAILURE;
 
 #ifdef EXTRAS
-    char *optstring = "hvnbDdELC:c:B:G:F:J:O:R:r:S:T:W:X:x:Y:y:Z:p:ui:teI:fk";
+    char *optstring = "hvnbDdELUC:c:B:G:F:J:O:R:r:S:T:W:X:x:Y:y:Z:p:ui:teI:fk";
 #else
     char *optstring = "hvnbdc:p:ui:teI:fk";
 #endif
@@ -1163,6 +1165,9 @@ int main(int argc, char *argv[]) {
                 digital_clock = true;
                 break;
             case 'E':
+                if ((display_text_template != NULL) || (unix_time)) {
+                    errx(EXIT_FAILURE, "Display text, elapsed time and UNIX time are mutually exclusive options\n");
+                }
                 elapsed_time = true;
                 i3lock_elapsed_time.start_time = time(NULL);
                 break;
@@ -1205,13 +1210,16 @@ int main(int argc, char *argv[]) {
                 DEBUG("led-off-color: %s\n", i3lock_led_clock.led_off_color);
                 break;
             }
-            case 'J': {
-                display_text = strdup(optarg);
-                if (display_text == NULL) {
+        case 'J': { /* display-text */
+                if ((elapsed_time) || (unix_time)) {
+                    errx(EXIT_FAILURE, "Display text, elapsed time and UNIX time are mutually exclusive options\n");
+                }
+                display_text_template = strdup(optarg);
+                if (display_text_template == NULL) {
                     errx(EXIT_FAILURE,
                          "Unable to initialize display_text\n");
                 }
-                DEBUG("display_text: %s\n", display_text);
+                DEBUG("display_text: %s\n", display_text_template);
                 break;
             }
             case 'O': { /* led-on-color */
@@ -1226,16 +1234,17 @@ int main(int argc, char *argv[]) {
                 DEBUG("led-on-color: %s\n", i3lock_led_clock.led_on_color);
                 break;
             }
-            case 'R': { /* elapsed-time-color */
+            case 'R': { /* display-text-color */
                 char *arg = optarg;
 
                 /* Skip # if present */
                 if (arg[0] == '#')
                     arg++;
 
+                /* since display-text is a subset of elapsed time, we store it in a i3lock_elapsed_time */
                 if (strlen(arg) != 6 || sscanf(arg, "%06[0-9a-fA-F]", i3lock_elapsed_time.color) != 1)
-                    errx(EXIT_FAILURE, "elapsed-time-color is invalid, it must be given in 3-byte hexadecimal format: rrggbb\n");
-                DEBUG("elapsed-time-color: %s\n", i3lock_elapsed_time.color);
+                    errx(EXIT_FAILURE, "display-text-color is invalid, it must be given in 3-byte hexadecimal format: rrggbb\n");
+                DEBUG("display-text-color: %s\n", i3lock_elapsed_time.color);
                 break;
             }
             case 'r': /* refresh-rate */
@@ -1254,17 +1263,23 @@ int main(int argc, char *argv[]) {
                 DEBUG("digital-clock-template: %s\n",
                       i3lock_digital_clock.template);
                 break;
-            case 'W': /* elapsed-time-halign */
+            case 'U': /* UNIX time (epoch time) */
+                if ((display_text_template != NULL) || (elapsed_time)) {
+                    errx(EXIT_FAILURE, "Display text, elapsed time and UNIX time are mutually exclusive options\n");
+                }
+                unix_time = true;
+                break;
+            case 'W': /* display-text-halign */
                 /* the default is right */
                 if (strcasecmp(optarg, "left") == 0) {
                     i3lock_elapsed_time.horizontal_alignment = I3LOCK_ALIGN_LEFT;
-                    DEBUG("elapsed-time-halign: left\n");
+                    DEBUG("display-text-halign: left\n");
                 } else if (strcasecmp(optarg, "center") == 0) {
                     i3lock_elapsed_time.horizontal_alignment = I3LOCK_ALIGN_CENTER;
-                    DEBUG("elapsed-time-halign: center\n");
+                    DEBUG("display-text-halign: center\n");
                 } else {
                     /* value already set */
-                    DEBUG("elapsed-time-halign: right\n");
+                    DEBUG("display-tex-halign: right\n");
                 }
                 break;
             case 'X': /* led-clock-halign */
@@ -1319,17 +1334,17 @@ int main(int argc, char *argv[]) {
                     DEBUG("digital-clock-valign: top\n");
                 }
                 break;
-            case 'Z': /* elapsed-time-valign */
+            case 'Z': /* display-tex-valign */
                 /* the default is bottom */
                 if (strcasecmp(optarg, "middle") == 0) {
                     i3lock_elapsed_time.vertical_alignment = I3LOCK_ALIGN_MIDDLE;
-                    DEBUG("elapsed-time-valign: middle\n");
+                    DEBUG("display-tex-valign: middle\n");
                 } else if (strcasecmp(optarg, "top") == 0) {
                     i3lock_elapsed_time.vertical_alignment = I3LOCK_ALIGN_TOP;
-                    DEBUG("elapsed-time-valign: top\n");
+                    DEBUG("display-text-valign: top\n");
                 } else {
                     /* value already set */
-                    DEBUG("elapsed-time-valign: bottom\n");
+                    DEBUG("display-text-valign: bottom\n");
                 }
                 break;
 #endif
@@ -1378,8 +1393,8 @@ int main(int argc, char *argv[]) {
                     "[-c color] [-D] [-d] [-E] [-e] [-F color] [-f] [-k]"
                     "[-G color] [-h] [-I timeout] [-i image.png] [-J text] "
                     "[-L] [-n] [-O color] [-p win|default] [-R color] "
-                    "[-r refresh rate] [-S size] [-T template] [-t] [-u] [-v] "
-                    "[-W horizontal-alignment] [-X horizontal-alignment] "
+                    "[-r refresh rate] [-S size] [-T template] [-t] [-U] [-u] "
+                    "[-v] [-W horizontal-alignment] [-X horizontal-alignment] "
                     "[-x horizontal-alignment] [-Y vertical-alignment] "
                     "[-y vertical-alignment] [-Z vertical-alignment]");
 #else

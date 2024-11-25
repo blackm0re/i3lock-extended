@@ -1,3 +1,10 @@
+2024-11-24 i3lock-extended 3.2.15
+
+ • Fetch and sync upstream master
+ • Add support for UNIX time (seconds since Epoch)
+ • Rename elapsed-time-* options to display-text-*
+
+
 2024-04-12 i3lock-extended 2.2.15
 
  • Fetch and sync with i3lock 2.15

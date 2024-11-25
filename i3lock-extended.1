@@ -49,6 +49,7 @@ i3lock\-extended \- improved screen locker
 .RB [\|\-T
 .IR template \|]
 .RB [\|\-t\|]
+.RB [\|\-U\|]
 .RB [\|\-u\|]
 .RB [\|\-v\|]
 .RB [\|\-W
@@ -98,6 +99,8 @@ Elapsed time since activation
 Display-text
 .IP \[bu]
 Count broken-down time until a specific calendar time (absolute time)
+.IP \[bu]
+UNIX time (seconds since Epoch)
 
 .SH OPTIONS
 .TP
@@ -191,8 +194,8 @@ displays a hardcoded Windows-Pointer (thus enabling you to mess with your
 friends by using a screenshot of a Windows desktop as a locking-screen).
 
 .TP
-.BI \-R\  rrggbb \fR,\ \fB\-\-elapsed\-time\-color= rrggbb
-The color of the elapsed time (text). Default: 000000 (black).
+.BI \-R\  rrggbb \fR,\ \fB\-\-display\-text\-color= rrggbb
+The color of the display text, elapsed time and UNIX time (text). Default: 000000 (black).
 
 .TP
 .BI \-r\  rate \fR,\ \fB\-\-refresh\-rate= rate
@@ -227,7 +230,7 @@ support each one explicitly.
 
 .TP
 .BI \-S\  size \fR,\ \fB\-\-text\-size= size
-The text size for elapsed time, digital clock and display-text. Default: 28.
+The text size for digital clock, display text, elapsed time and UNIX time. Default: 28.
 
 .TP
 .BI \-T\  template \fR,\ \fB\-\-digital\-clock\-template= template
@@ -237,6 +240,10 @@ The date(time) template for the digital clock. Default: %H:%M:%S.
 .B \-t, \-\-tiling
 If an image is specified (via \-i) it will display the image tiled all over the screen
 (if it is a multi-monitor setup, the image is visible on all screens).
+
+.TP
+.B \-U, \-\-unix-time
+Display UNIX time (seconds since Epoch)
 
 .TP
 .B \-u, \-\-no-unlock-indicator
@@ -251,8 +258,8 @@ Display the version of your
 .B i3lock
 
 .TP
-.BI \-W\  halign \fR,\ \fB\-\-elapsed\-time\-halign= halign
-The horizontal alignment for elapsed time and display-text.
+.BI \-W\  halign \fR,\ \fB\-\-display\-text\-halign= halign
+The horizontal alignment for display text, elapsed time and UNIX time.
 Valid halign values: left, center, right. Default: right
 
 .TP
@@ -273,8 +280,8 @@ Valid valign values: top, middle, bottom. Default: bottom
 The vertical alignment for the digital clock. Default: top
 
 .TP
-.BI \-Z\  valign \fR,\ \fB\-\-elapsed\-time\-valign= valign
-The vertical alignment for elapsed time and display-text. Default: bottom
+.BI \-Z\  valign \fR,\ \fB\-\-display\-text\-valign= valign
+The vertical alignment for display text, elapsed time and UNIX time. Default: bottom
 
 .SH DPMS
 
